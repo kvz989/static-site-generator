@@ -26,7 +26,7 @@ class LeafNode(HTMLNode):
 
     def to_html(self):
         prop = ""
-        if not self.value:
+        if self.value is None:
             raise ValueError()
         if not self.tag:
             return self.value
@@ -48,7 +48,7 @@ class ParentNode(HTMLNode):
         if not self.tag:
             raise ValueError("tag not found")
         for child in self.children:  # pyright: ignore[reportOptionalIterable]
-            if not child.value and not isinstance(child, ParentNode):
+            if child.value is None and not isinstance(child, ParentNode):
                 raise ValueError("child missing value")
             child_output = child.to_html()
             children_output += child_output

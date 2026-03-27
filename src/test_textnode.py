@@ -1,8 +1,11 @@
 import unittest
 
 from markdown_parser import (
+    BlockType,
+    block_to_block_type,
     extract_markdown_images,
     extract_markdown_links,
+    markdown_to_blocks,
     split_nodes_delimiter,
     split_nodes_image,
     split_nodes_link,
@@ -150,6 +153,78 @@ class TestTextNode(unittest.TestCase):
         # new_nodes = text_to_textnodes(test_string)
         # for node in new_nodes:
         #     print(node)
+
+    def test_markdown_to_blocks(self):
+        md = """
+This is **bolded** paragraph
+
+This is another paragraph with _italic_ text and `code` here
+This is the same paragraph on a new line
+
+- This is a list
+- with items
+"""
+        blocks = markdown_to_blocks(md)
+
+        self.assertEqual(
+            blocks,
+            [
+                "This is **bolded** paragraph",
+                "This is another paragraph with _italic_ text and `code` here\nThis is the same paragraph on a new line",
+                "- This is a list\n- with items",
+            ],
+        )
+
+    def test_block_to_block_type_paragraph(self):
+        md = "test"
+        block_type1 = block_to_block_type(md)
+        block_type2 = BlockType.PARAGRAPH
+        self.assertEqual(block_type1, block_type2)
+
+    def test_block_to_block_type_heading(self):
+        mds = (
+            "# test",
+            "## test",
+            "### test",
+            "#### test",
+            "##### test",
+            "###### test",
+        )
+        bad_mds = ("#test", "test")
+        for md in mds:
+            block_type = block_to_block_type(md)
+            self.assertEqual(block_type, BlockType.HEADING)
+        for bad_md in bad_mds:
+            block_type = block_to_block_type(bad_md)
+            self.assertNotEqual(block_type, BlockType.HEADING)
+
+    def test_block_to_block_type_code(self):
+        md = "```\ntest```"
+        block_type1 = block_to_block_type(md)
+        block_type2 = BlockType.CODE
+        self.assertEqual(block_type1, block_type2)
+
+    def test_block_to_block_type_quote(self):
+        md = ">test"
+        block_type1 = block_to_block_type(md)
+        block_type2 = BlockType.QUOTE
+        self.assertEqual(block_type1, block_type2)
+
+    def test_block_to_block_type_unordered_list(self):
+        md = "- test"
+        block_type1 = block_to_block_type(md)
+        block_type2 = BlockType.UNORDERED_LIST
+        self.assertEqual(block_type1, block_type2)
+
+    def test_block_to_block_type_ordered_list(self):
+        mds = ["1. test\n2. test\n3. test", "1. test"]
+        bad_mds = ["1.test", "test", "1. test\n3. test"]
+        # for md in mds:
+        # block_type = block_to_block_type(md)
+        # self.assertEqual(block_type, BlockType.ORDERED_LIST)
+        for bad_md in bad_mds:
+            block_type = block_to_block_type(bad_md)
+            self.assertNotEqual(block_type, BlockType.ORDERED_LIST)
 
 
 if __name__ == "__main__":
